@@ -25,7 +25,6 @@
     "@theia/file-search": "1.38.0",
     "@theia/filesystem": "1.38.0",
     "@theia/getting-started": "1.38.0",
-    "@theia/git": "1.38.0",
     "@theia/keymaps": "1.38.0",
     "@theia/markers": "1.38.0",
     "@theia/memory-inspector": "1.38.0",
