@@ -64,4 +64,5 @@ export default new ContainerModule(bind => {
     bind(MultiRingBuffer).toSelf().inTransientScope();
     /* 1MB size, TODO should be a user preference. */
     bind(MultiRingBufferOptions).toConstantValue({ size: 1048576 });
+
 });

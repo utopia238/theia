@@ -25,6 +25,7 @@ import { MessagingListener, MessagingListenerContribution } from './messaging-li
 export const messagingBackendModule = new ContainerModule(bind => {
     bindContributionProvider(bind, ConnectionContainerModule);
     bindContributionProvider(bind, MessagingService.Contribution);
+    bindContributionProvider(bind, MessagingService.RedirectContribution);
     bind(MessagingService.Identifier).to(MessagingContribution).inSingletonScope();
     bind(MessagingContribution).toDynamicValue(({ container }) => {
         const child = container.createChild();

@@ -136,6 +136,8 @@ import { MarkdownRenderer, MarkdownRendererFactory, MarkdownRendererImpl } from 
 import { StylingParticipant, StylingService } from './styling-service';
 import { bindCommonStylingParticipants } from './common-styling-participants';
 import { HoverService } from './hover-service';
+import { CookieService } from './cookies';
+import { NullRemoteService, RemoteService } from './remote-service';
 
 export { bindResourceProvider, bindMessageService, bindPreferenceService };
 
@@ -440,6 +442,11 @@ export const frontendApplicationModule = new ContainerModule((bind, _unbind, _is
     bind(StylingService).toSelf().inSingletonScope();
     bindContributionProvider(bind, StylingParticipant);
     bind(FrontendApplicationContribution).toService(StylingService);
+
+    bind(CookieService).toSelf().inSingletonScope();
+
+    bind(NullRemoteService).toSelf().inSingletonScope();
+    bind(RemoteService).toService(NullRemoteService);
 
     bind(SecondaryWindowHandler).toSelf().inSingletonScope();
 });

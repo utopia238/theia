@@ -50,7 +50,9 @@ import {
     CHANNEL_SET_MENU_BAR_VISIBLE,
     CHANNEL_TOGGLE_FULL_SCREEN,
     CHANNEL_IS_MAXIMIZED,
-    CHANNEL_REQUEST_SECONDARY_CLOSE
+    CHANNEL_REQUEST_SECONDARY_CLOSE,
+    CHANNEL_SET_COOKIE,
+    CHANNEL_REMOVE_COOKIE
 } from '../electron-common/electron-api';
 import { ElectronMainApplication, ElectronMainApplicationContribution } from './electron-main-application';
 import { Disposable, DisposableCollection, isOSX, MaybePromise } from '../common';
@@ -64,6 +66,22 @@ export class TheiaMainApi implements ElectronMainApplicationContribution {
     protected readonly openPopups = new Map<number, Menu>();
 
     onStart(application: ElectronMainApplication): MaybePromise<void> {
+
+        // cookies
+        ipcMain.on(CHANNEL_SET_COOKIE, (event, endpoint: string, name: string, value: string) => {
+            session.defaultSession.cookies.set({
+                url: endpoint,
+                name,
+                value,
+                httpOnly: true,
+                sameSite: 'no_restriction'
+            });
+        });
+
+        ipcMain.on(CHANNEL_REMOVE_COOKIE, (event, endpoint: string, name: string) => {
+            session.defaultSession.cookies.remove(endpoint, name);
+        });
+
         // electron security token
         ipcMain.on(CHANNEL_GET_SECURITY_TOKEN, event => {
             event.returnValue = this.electronSecurityToken.value;

@@ -14,7 +14,7 @@
 // SPDX-License-Identifier: EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0
 // *****************************************************************************
 
-import { injectable, interfaces, decorate, unmanaged } from 'inversify';
+import { injectable, interfaces, decorate, unmanaged, postConstruct } from 'inversify';
 import { RpcProxyFactory, RpcProxy, Emitter, Event, Channel } from '../../common';
 import { Endpoint } from '../endpoint';
 import { AbstractConnectionProvider } from '../../common/messaging/abstract-connection-provider';
@@ -48,23 +48,15 @@ export class WebSocketConnectionProvider extends AbstractConnectionProvider<WebS
         return container.get(WebSocketConnectionProvider).createProxy<T>(path, arg);
     }
 
-    protected readonly socket: Socket;
+    protected socket: Socket;
 
     constructor() {
         super();
-        const url = this.createWebSocketUrl(WebSocketChannel.wsPath);
-        this.socket = this.createWebSocket(url);
-        this.socket.on('connect', () => {
-            this.initializeMultiplexer();
-            if (this.reconnectChannelOpeners.length > 0) {
-                this.reconnectChannelOpeners.forEach(opener => opener());
-                this.reconnectChannelOpeners = [];
-            }
-            this.socket.on('disconnect', () => this.fireSocketDidClose());
-            this.socket.on('message', () => this.onIncomingMessageActivityEmitter.fire(undefined));
-            this.fireSocketDidOpen();
-        });
-        this.socket.connect();
+    }
+
+    @postConstruct()
+    protected init(): void {
+        this.connect();
     }
 
     protected createMainChannel(): Channel {
@@ -109,6 +101,22 @@ export class WebSocketConnectionProvider extends AbstractConnectionProvider<WebS
 
     protected createHttpWebSocketUrl(path: string): string {
         return new Endpoint({ path }).getRestUrl().toString();
+    }
+
+    protected connect(path: string = WebSocketChannel.wsPath): void {
+        const url = this.createWebSocketUrl(path);
+        this.socket = this.createWebSocket(url);
+        this.socket.on('connect', () => {
+            this.initializeMultiplexer();
+            if (this.reconnectChannelOpeners.length > 0) {
+                this.reconnectChannelOpeners.forEach(opener => opener());
+                this.reconnectChannelOpeners = [];
+            }
+            this.socket.on('disconnect', () => this.fireSocketDidClose());
+            this.socket.on('message', () => this.onIncomingMessageActivityEmitter.fire(undefined));
+            this.fireSocketDidOpen();
+        });
+        this.socket.connect();
     }
 
     /**

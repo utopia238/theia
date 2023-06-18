@@ -18,7 +18,7 @@ import { Disposable } from '../common/disposable';
 import { StopReason } from '../common/frontend-application-state';
 import { NativeKeyboardLayout } from '../common/keyboard/keyboard-layout-provider';
 import {
-    CHANNEL_ATTACH_SECURITY_TOKEN,
+    CHANNEL_ATTACH_SECURITY_TOKEN, CHANNEL_SET_COOKIE, CHANNEL_REMOVE_COOKIE,
     CHANNEL_FOCUS_WINDOW, CHANNEL_GET_SECURITY_TOKEN, CHANNEL_INVOKE_MENU, CHANNEL_SET_MENU, CHANNEL_OPEN_POPUP, CHANNEL_CLOSE_POPUP,
     MenuDto, TheiaCoreAPI, CHANNEL_ON_CLOSE_POPUP, CHANNEL_GET_TITLE_STYLE_AT_STARTUP, WindowEvent,
     CHANNEL_MINIMIZE, CHANNEL_IS_MAXIMIZED, CHANNEL_MAXIMIZE, CHANNEL_UNMAXIMIZE, CHANNEL_CLOSE, CHANNEL_TOGGLE_DEVTOOLS,
@@ -65,6 +65,8 @@ function convertMenu(menu: MenuDto[] | undefined, handlerMap: Map<number, () => 
 }
 
 const api: TheiaCoreAPI = {
+    setCookie: (endpoint: string, name: string, value: string) => ipcRenderer.send(CHANNEL_SET_COOKIE, endpoint, name, value),
+    removeCookie: (endpoint: string, name: string) => ipcRenderer.send(CHANNEL_REMOVE_COOKIE, endpoint, name),
     setMenuBarVisible: (visible: boolean, windowName?: string) => ipcRenderer.send(CHANNEL_SET_MENU_BAR_VISIBLE, visible, windowName),
     setMenu: (menu: MenuDto[] | undefined) => {
         commandHandlers.delete(mainMenuId);

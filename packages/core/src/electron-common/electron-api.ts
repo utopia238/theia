@@ -41,6 +41,9 @@ export type InternalMenuDto = Omit<MenuDto, 'execute' | 'submenu'> & {
 export type WindowEvent = 'maximize' | 'unmaximize' | 'focus';
 
 export interface TheiaCoreAPI {
+    setCookie(endpoint: string, name: string, value: string): void;
+    removeCookie(endpoint: string, name: string): void;
+
     getSecurityToken: () => string;
     attachSecurityToken: (endpoint: string) => Promise<void>;
 
@@ -93,6 +96,9 @@ declare global {
         electronTheiaCore: TheiaCoreAPI
     }
 }
+
+export const CHANNEL_SET_COOKIE = 'SetCookie';
+export const CHANNEL_REMOVE_COOKIE = 'RemoveCookie';
 
 export const CHANNEL_SET_MENU = 'SetMenu';
 export const CHANNEL_SET_MENU_BAR_VISIBLE = 'SetMenuBarVisible';

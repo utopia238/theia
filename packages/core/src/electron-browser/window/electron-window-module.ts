@@ -27,6 +27,8 @@ import { FrontendApplicationStateService } from '../../browser/frontend-applicat
 import { ElectronFrontendApplicationStateService } from './electron-frontend-application-state';
 import { ElectronSecondaryWindowService } from './electron-secondary-window-service';
 import { SecondaryWindowService } from '../../browser/window/secondary-window-service';
+import { ElectronCookieService } from './electron-cookies';
+import { CookieService } from '../../browser/cookies';
 
 export default new ContainerModule((bind, unbind, isBound, rebind) => {
     bind(ElectronMainWindowService).toDynamicValue(context =>
@@ -38,4 +40,5 @@ export default new ContainerModule((bind, unbind, isBound, rebind) => {
     bind(ClipboardService).to(ElectronClipboardService).inSingletonScope();
     rebind(FrontendApplicationStateService).to(ElectronFrontendApplicationStateService).inSingletonScope();
     bind(SecondaryWindowService).to(ElectronSecondaryWindowService).inSingletonScope();
+    rebind(CookieService).to(ElectronCookieService).inSingletonScope();
 });

@@ -42,6 +42,9 @@ export class MessagingContribution implements BackendApplicationContribution, Me
     @inject(ContributionProvider) @named(MessagingService.Contribution)
     protected readonly contributions: ContributionProvider<MessagingService.Contribution>;
 
+    @inject(ContributionProvider) @named(MessagingService.RedirectContribution)
+    protected readonly redirectContributions: ContributionProvider<MessagingService.RedirectContribution>;
+
     @inject(WsRequestValidator)
     protected readonly wsRequestValidator: WsRequestValidator;
 
@@ -60,11 +63,11 @@ export class MessagingContribution implements BackendApplicationContribution, Me
     }
 
     wsChannel(spec: string, callback: (params: MessagingService.PathParams, channel: Channel) => void): void {
-        this.channelHandlers.push(spec, (params, channel) => callback(params, channel));
+        return this.channelHandlers.push(spec, (params, channel) => callback(params, channel));
     }
 
     ws(spec: string, callback: (params: MessagingService.PathParams, socket: Socket) => void): void {
-        this.wsHandlers.push(spec, callback);
+        return this.wsHandlers.push(spec, callback);
     }
 
     protected checkAliveTimeout = 30000; // 30 seconds
@@ -83,7 +86,7 @@ export class MessagingContribution implements BackendApplicationContribution, Me
             // We provide a `fix-origin` header in the `WebSocketConnectionProvider`
             request.headers.origin = request.headers['fix-origin'] as string;
             if (await this.allowConnect(socket.request)) {
-                this.handleConnection(socket);
+                await this.handleConnection(socket);
                 this.messagingListener.onDidWebSocketUpgrade(socket.request, socket);
             } else {
                 socket.disconnect(true);
@@ -91,10 +94,19 @@ export class MessagingContribution implements BackendApplicationContribution, Me
         });
     }
 
-    protected handleConnection(socket: Socket): void {
-        const pathname = socket.nsp.name;
-        if (pathname && !this.wsHandlers.route(pathname, socket)) {
-            console.error('Cannot find a ws handler for the path: ' + pathname);
+    protected async handleConnection(socket: Socket): Promise<void> {
+        let redirect = false;
+        for (const redirectContribution of this.redirectContributions.getContributions()) {
+            redirect = await redirectContribution.redirect(socket);
+            if (redirect) {
+                break;
+            }
+        }
+        if (!redirect) {
+            const pathname = socket.nsp.name;
+            if (pathname && !this.wsHandlers.route(pathname, socket)) {
+                console.error('Cannot find a ws handler for the path: ' + pathname);
+            }
         }
     }
 
@@ -166,14 +178,15 @@ export namespace MessagingContribution {
 
         push(spec: string, callback: (params: MessagingService.PathParams, connection: T) => void): void {
             const route = new Route(spec);
-            this.handlers.push((path, channel) => {
+            const handler = (path: string, channel: T): string | false => {
                 const params = route.match(path);
                 if (!params) {
                     return false;
                 }
                 callback(params, channel);
                 return route.reverse(params);
-            });
+            };
+            this.handlers.push(handler);
         }
 
         route(path: string, connection: T): string | false {

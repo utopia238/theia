@@ -43,4 +43,8 @@ export namespace MessagingService {
     export interface Contribution {
         configure(service: MessagingService): void;
     }
+    export const RedirectContribution = Symbol('MessagingService.RedirectContribution');
+    export interface RedirectContribution {
+        redirect(socket: Socket): Promise<boolean>;
+    }
 }
