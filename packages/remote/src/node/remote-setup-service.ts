@@ -23,6 +23,7 @@ import { RemoteConnection, RemoteExecResult, RemotePlatform, RemoteStatusReport 
 import { ApplicationPackage } from '@theia/core/shared/@theia/application-package';
 import { RemoteCopyService } from './remote-copy-service';
 import { RemoteNativeDependencyService } from './remote-native-dependency-service';
+import { THEIA_VERSION } from '@theia/core';
 
 /**
  * The current node version that Theia recommends.
@@ -50,14 +51,14 @@ export class RemoteSetupService {
         report('Identifying remote system...');
         // 1. Identify remote platform
         const platform = await this.detectRemotePlatform(connection);
-        // Build a few remote system paths
+        // 2. Setup home directory
         const remoteHome = await this.getRemoteHomeDirectory(connection, platform);
         const applicationDirectory = this.joinRemotePath(platform, remoteHome, `.${this.getRemoteAppName()}`);
         await this.mkdirRemote(connection, platform, applicationDirectory);
+        // 3. Download+copy node for that platform
         const nodeFileName = this.getNodeFileName(platform);
         const nodeDirName = this.getNodeDirectoryName(platform);
         const remoteNodeDirectory = this.joinRemotePath(platform, applicationDirectory, nodeDirName);
-        // 2. Download+copy node for that platform
         const nodeDirExists = await this.dirExistsRemote(connection, remoteNodeDirectory);
         if (!nodeDirExists) {
             report('Downloading and installing Node.js on remote...');
@@ -66,12 +67,16 @@ export class RemoteSetupService {
             await connection.copy(nodeArchive, remoteNodeZip);
             await this.unzipRemote(connection, remoteNodeZip, applicationDirectory);
         }
-        // 3. Copy backend to remote system
+        // 4. Copy backend to remote system
         report('Copying application to remote...');
-        const applicationZipFile = this.joinRemotePath(platform, applicationDirectory, `${this.getRemoteAppName()}.tar`);
-        await this.copyService.copyToRemote(connection, platform, applicationZipFile);
-        await this.unzipRemote(connection, applicationZipFile, applicationDirectory);
-        // 4. start remote backend
+        const libDir = this.joinRemotePath(platform, applicationDirectory, 'lib');
+        const libDirExists = await this.dirExistsRemote(connection, libDir);
+        if (!libDirExists) {
+            const applicationZipFile = this.joinRemotePath(platform, applicationDirectory, `${this.getRemoteAppName()}.tar`);
+            await this.copyService.copyToRemote(connection, platform, applicationZipFile);
+            await this.unzipRemote(connection, applicationZipFile, applicationDirectory);
+        }
+        // 5. start remote backend
         report('Starting application on remote...');
         const port = await this.startApplication(connection, platform, applicationDirectory, remoteNodeDirectory);
         connection.remotePort = port;
@@ -162,7 +167,9 @@ export class RemoteSetupService {
     }
 
     protected getRemoteAppName(): string {
-        return `${this.cleanupDirectoryName(this.applicationPackage.pck.name || 'theia')}-remote`;
+        const appName = this.applicationPackage.pck.name || 'theia';
+        const appVersion = this.applicationPackage.pck.version || THEIA_VERSION;
+        return `${this.cleanupDirectoryName(`${appName}-${appVersion}`)}-remote`;
     }
 
     protected cleanupDirectoryName(name: string): string {
@@ -176,15 +183,15 @@ export class RemoteSetupService {
 
     protected async mkdirRemote(connection: RemoteConnection, platform: RemotePlatform, remotePath: string): Promise<void> {
         const recursive = platform !== 'windows' ? ' -p' : '';
-        const result = await connection.exec(`mkdir${recursive}`, [remotePath]);
+        const result = await this.retry(() => connection.exec(`mkdir${recursive} "${remotePath}";echo "Success"`));
         if (result.stderr) {
             throw new Error('Failed to create directory: ' + result.stderr);
         }
     }
 
     protected async dirExistsRemote(connection: RemoteConnection, remotePath: string): Promise<boolean> {
-        const cdResult = await connection.exec('cd', [remotePath]);
-        return !Boolean(cdResult.stderr);
+        const cdResult = await this.retry(() => connection.exec(`cd "${remotePath}";echo "Success"`));
+        return Boolean(cdResult.stdout);
     }
 
     protected async unzipRemote(connection: RemoteConnection, remoteFile: string, remoteDirectory: string): Promise<void> {
@@ -194,7 +201,12 @@ export class RemoteSetupService {
         }
     }
 
-    protected async retry(action: () => Promise<RemoteExecResult>, times = 10): Promise<RemoteExecResult> {
+    /**
+     * Sometimes, ssh2.exec will not execute and retrieve any data.
+     * For this case, we just perform the exec call multiple times until we get something back.
+     * See also https://github.com/mscdex/ssh2/issues/48
+     */
+    protected async retry(action: () => Promise<RemoteExecResult>, times = 20): Promise<RemoteExecResult> {
         let result: RemoteExecResult = { stderr: '', stdout: '' };
         while (times-- > 0) {
             result = await action();
