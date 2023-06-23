@@ -18,6 +18,7 @@
   - The type expected by the `PreferenceProxySchema` symbol has been changed from `PromiseLike<PreferenceSchema>` to `() => PromiseLike<PreferenceSchema>`
   - The symbol `OnigasmPromise` has been changed to `OnigasmProvider` and injects a function of type `() => Promise<IOnigLib>`
   - The symbol `PreferenceTransactionPrelude` has been changed to `PreferenceTransactionPreludeProvider ` and injects a function of type `() => Promise<unknown>`
+- [workspace] split `CommonWorkspaceUtils` into `WorkspaceFileService` and `UntitledWorkspaceService` [#12420](https://github.com/eclipse-theia/theia/pull/12420)
 
 ## v1.38.0 - 05/25/2023
 
