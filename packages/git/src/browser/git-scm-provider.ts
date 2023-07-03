@@ -241,13 +241,21 @@ export class GitScmProvider implements ScmProvider {
                 return DiffUris.encode(
                     fromFileUri.withScheme(GIT_RESOURCE_SCHEME).withQuery('HEAD'),
                     changeUri.withScheme(GIT_RESOURCE_SCHEME),
-                    this.labelProvider.getName(changeUri) + ' (Index)');
+                    nls.localize(
+                        'theia/git/tabTitleIndex',
+                        '{0} (Index)',
+                        this.labelProvider.getName(changeUri)
+                    ));
             }
             if (this.stagedChanges.find(c => c.uri === change.uri)) {
                 return DiffUris.encode(
                     fromFileUri.withScheme(GIT_RESOURCE_SCHEME),
                     changeUri,
-                    this.labelProvider.getName(changeUri) + ' (Working tree)');
+                    nls.localize(
+                        'theia/git/tabTitleWorkingTree',
+                        '{0} (Working tree)',
+                        this.labelProvider.getName(changeUri)
+                    ));
             }
             if (this.mergeChanges.find(c => c.uri === change.uri)) {
                 return changeUri;
@@ -255,7 +263,11 @@ export class GitScmProvider implements ScmProvider {
             return DiffUris.encode(
                 fromFileUri.withScheme(GIT_RESOURCE_SCHEME).withQuery('HEAD'),
                 changeUri,
-                this.labelProvider.getName(changeUri) + ' (Working tree)');
+                nls.localize(
+                    'theia/git/tabTitleWorkingTree',
+                    '{0} (Working tree)',
+                    this.labelProvider.getName(changeUri)
+                ));
         }
         if (change.staged) {
             return changeUri.withScheme(GIT_RESOURCE_SCHEME);
@@ -264,7 +276,11 @@ export class GitScmProvider implements ScmProvider {
             return DiffUris.encode(
                 changeUri.withScheme(GIT_RESOURCE_SCHEME),
                 changeUri,
-                this.labelProvider.getName(changeUri) + ' (Working tree)');
+                nls.localize(
+                    'theia/git/tabTitleWorkingTree',
+                    '{0} (Working tree)',
+                    this.labelProvider.getName(changeUri)
+                ));
         }
         return changeUri;
     }
@@ -415,7 +431,7 @@ export class GitScmProvider implements ScmProvider {
             fileText = `${paths.length} files`;
         }
         return new ConfirmDialog({
-            title: nls.localize('vscode.git/package/command.clean', 'Discard Changes'),
+            title: nls.localizeByDefault('Discard Changes'),
             msg: nls.localize('vscode.git/commands/confirm discard', 'Do you really want to discard changes in {0}?', fileText)
         }).open();
     }

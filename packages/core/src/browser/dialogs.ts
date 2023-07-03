@@ -180,7 +180,7 @@ export abstract class AbstractDialog<T> extends BaseWidget {
         titleContentNode.appendChild(this.titleNode);
 
         this.closeCrossNode = this.node.ownerDocument.createElement('i');
-        this.closeCrossNode.classList.add(...codiconArray('close'));
+        this.closeCrossNode.classList.add(...codiconArray('close', true));
         this.closeCrossNode.classList.add('closeButton');
         titleContentNode.appendChild(this.closeCrossNode);
 
@@ -528,7 +528,10 @@ export class SingleTextInputDialog extends AbstractDialog<string> {
         } else {
             this.inputField.select();
         }
+
         this.contentNode.appendChild(this.inputField);
+        this.controlPanel.removeChild(this.errorMessageNode);
+        this.contentNode.appendChild(this.errorMessageNode);
 
         this.appendAcceptButton(props.confirmButtonLabel);
     }

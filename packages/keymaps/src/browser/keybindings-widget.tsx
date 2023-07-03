@@ -399,7 +399,7 @@ export class KeybindingWidget extends ReactWidget implements StatefulWidget {
         return <a title='Edit Keybinding' href='#' onClick={e => {
             e.preventDefault();
             this.editKeybinding(item);
-        }}><i className={`${codicon('edit')} kb-action-item`}></i></a>;
+        }}><i className={`${codicon('edit', true)} kb-action-item`}></i></a>;
     }
 
     /**
@@ -412,7 +412,7 @@ export class KeybindingWidget extends ReactWidget implements StatefulWidget {
             ? <a title='Reset Keybinding' href='#' onClick={e => {
                 e.preventDefault();
                 this.resetKeybinding(item);
-            }}><i className={`${codicon('discard')} kb-action-item`}></i></a> : '';
+            }}><i className={`${codicon('discard', true)} kb-action-item`}></i></a> : '';
     }
 
     /**
@@ -640,7 +640,7 @@ export class KeybindingWidget extends ReactWidget implements StatefulWidget {
             const binding = { command, keybinding };
             KeySequence.parse(keybinding);
             if (oldKeybinding === keybinding) {
-                return ' '; // if old and new keybindings match, quietly reject update
+                return ''; // if old and new keybindings match, quietly reject update
             }
             if (this.keybindingRegistry.containsKeybindingInScope(binding)) {
                 return nls.localize('theia/keymaps/keybindingCollidesValidation', 'keybinding currently collides');

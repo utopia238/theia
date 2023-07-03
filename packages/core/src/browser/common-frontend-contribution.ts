@@ -32,7 +32,7 @@ import { AboutDialog } from './about-dialog';
 import * as browser from './browser';
 import URI from '../common/uri';
 import { ContextKey, ContextKeyService } from './context-key-service';
-import { OS, isOSX, isWindows } from '../common/os';
+import { OS, isOSX, isWindows, EOL } from '../common/os';
 import { ResourceContextKey } from './resource-context-key';
 import { UriSelection } from '../common/selection';
 import { StorageService } from './storage-service';
@@ -270,12 +270,12 @@ export namespace CommonCommands {
     export const SHOW_MENU_BAR = Command.toDefaultLocalizedCommand({
         id: 'window.menuBarVisibility',
         category: VIEW_CATEGORY,
-        label: 'Show Menu Bar'
+        label: 'Toggle Menu Bar'
     });
     export const NEW_UNTITLED_FILE = Command.toDefaultLocalizedCommand({
         id: 'workbench.action.files.newUntitledFile',
         category: FILE_CATEGORY,
-        label: 'New Untitled File'
+        label: 'New Untitled Text File'
     });
     export const SAVE = Command.toDefaultLocalizedCommand({
         id: 'core.save',
@@ -736,7 +736,7 @@ export class CommonFrontendContribution implements FrontendApplicationContributi
             isEnabled: uris => Array.isArray(uris) && uris.some(uri => uri instanceof URI),
             execute: async uris => {
                 if (uris.length) {
-                    const lineDelimiter = isWindows ? '\r\n' : '\n';
+                    const lineDelimiter = EOL;
                     const text = uris.map(resource => resource.path.fsPath()).join(lineDelimiter);
                     await this.clipboardService.writeText(text);
                 } else {
@@ -1826,8 +1826,8 @@ export class CommonFrontendContribution implements FrontendApplicationContributi
             },
             {
                 id: 'menubar.selectionBackground', defaults: {
-                    dark: Color.transparent('#ffffff', 0.1),
-                    light: Color.transparent('#000000', 0.1)
+                    dark: 'toolbar.hoverBackground',
+                    light: 'toolbar.hoverBackground'
                 }, description: 'Background color of the selected menu item in the menubar.'
             },
             {
