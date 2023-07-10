@@ -10,6 +10,8 @@
 
 <a name="breaking_changes_1.40.0">[Breaking Changes:](#breaking_changes_1.40.0)</a>
 
+- [terminal] deprecated `terminal.integrated.rendererType` preference [#12691](https://github.com/eclipse-theia/theia/pull/12691)
+- [terminal] removed protected method `TerminalWidgetImpl.getTerminalRendererType` [#12691](https://github.com/eclipse-theia/theia/pull/12691)
 
 ## v1.39.0 - 06/29/2023
 
